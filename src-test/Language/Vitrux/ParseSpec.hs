@@ -3,24 +3,19 @@ module Language.Vitrux.ParseSpec where
 import Control.Applicative ((<*))
 import Data.Either (rights)
 import Language.Vitrux.AST
-import Language.Vitrux.AST.ID (TypeID(..), DeclID(..), ExprID(..))
 import Language.Vitrux.Parse
 import Test.Hspec (describe, it, shouldBe, Spec)
 import Text.Parsec (eof, runParser)
 
-typeID = TypeID (-1)
-declID = DeclID (-1)
-exprID = ExprID (-1)
-
 -- TODO move these
-voidType = NamedType typeID (UnqualifiedName "Void")
-exampleSubType = SubType typeID [(NamedType typeID (UnqualifiedName "A")), (NamedType typeID (UnqualifiedName "B"))] (NamedType typeID (UnqualifiedName "C"))
-aType = NamedType typeID (UnqualifiedName "A")
-bType = NamedType typeID (UnqualifiedName "B")
-cType = NamedType typeID (UnqualifiedName "C")
-dType = NamedType typeID (UnqualifiedName "D")
-emptyBlock = BlockExpr exprID []
-makeType name = NamedType typeID (UnqualifiedName name)
+voidType = NamedType (UnqualifiedName "Void")
+exampleSubType = SubType [(NamedType (UnqualifiedName "A")), (NamedType (UnqualifiedName "B"))] (NamedType (UnqualifiedName "C"))
+aType = NamedType (UnqualifiedName "A")
+bType = NamedType (UnqualifiedName "B")
+cType = NamedType (UnqualifiedName "C")
+dType = NamedType (UnqualifiedName "D")
+emptyBlock = BlockExpr []
+makeType name = NamedType (UnqualifiedName name)
 stringFoo = StringLiteralExpr "foo"
 stringBar = StringLiteralExpr "bar"
 abcQualifiedName = QualifiedName (ModuleName ["a", "b"]) "c"
@@ -30,14 +25,13 @@ helloWorldSource = "import mill.log\n" ++
                    "sub main(console: log.Logger): () {\n" ++
                    "    log.info(console, \"Hello, world!\")" ++
                    "}\n"
-helloWorldAST = Module [ ImportDecl declID (ModuleName ["mill", "log"])
-                       , SubDecl declID
-                                 "main"
-                                 [Parameter "console" (NamedType typeID (QualifiedName (ModuleName ["log"]) "Logger"))]
-                                 (TupleType typeID [])
-                                 (BlockExpr exprID [ExprStmt $ CallExpr exprID
-                                                                        (NameExpr exprID (QualifiedName (ModuleName ["log"]) "info"))
-                                                                        [NameExpr exprID (UnqualifiedName "console"), StringLiteralExpr exprID "Hello, world!"]])
+helloWorldAST = Module [ ImportDecl (ModuleName ["mill", "log"])
+                       , SubDecl "main"
+                                 [Parameter "console" (NamedType (QualifiedName (ModuleName ["log"]) "Logger"))]
+                                 (TupleType [])
+                                 (BlockExpr [ExprStmt $ CallExpr
+                                                                        (NameExpr (QualifiedName (ModuleName ["log"]) "info"))
+                                                                        [NameExpr (UnqualifiedName "console"), StringLiteralExpr "Hello, world!"]])
                        ]
 
 spec :: Spec
@@ -55,7 +49,7 @@ spec = do
 
     describe "Language.Vitrux.Parse.parameter" $ do
       it "parses a parameter with a type" $ do
-        rights [runParser (parameter <* eof) 0 "" "a: b"] `shouldBe` [Parameter "a" (NamedType typeID (UnqualifiedName "b"))]
+        rights [runParser (parameter <* eof) 0 "" "a: b"] `shouldBe` [Parameter "a" (NamedType (UnqualifiedName "b"))]
 
     describe "Language.Vitrux.Parse.parameterList" $ do
       it "parses an empy parameter list" $ do
@@ -73,33 +67,33 @@ spec = do
     describe "Language.Vitrux.Parse.type_" $ do
       it "parses named types" $ do
         rights [runParser (type_ <* eof) 0 "" "A"] `shouldBe` [aType]
-        rights [runParser (type_ <* eof) 0 "" "m.A"] `shouldBe` [NamedType typeID (QualifiedName (ModuleName ["m"]) "A")]
-        rights [runParser (type_ <* eof) 0 "" "m.n.A"] `shouldBe` [NamedType typeID (QualifiedName (ModuleName ["m", "n"]) "A")]
+        rights [runParser (type_ <* eof) 0 "" "m.A"] `shouldBe` [NamedType (QualifiedName (ModuleName ["m"]) "A")]
+        rights [runParser (type_ <* eof) 0 "" "m.n.A"] `shouldBe` [NamedType (QualifiedName (ModuleName ["m", "n"]) "A")]
 
       it "parses sub types" $ do
-        rights [runParser (type_ <* eof) 0 "" "(A) => B"] `shouldBe` [SubType typeID [aType] bType]
-        rights [runParser (type_ <* eof) 0 "" "(A, B) => C"] `shouldBe` [SubType typeID [aType, bType] cType]
-        rights [runParser (type_ <* eof) 0 "" "(A, B) => (C) => D"] `shouldBe` [SubType typeID [aType, bType] (SubType typeID [cType] dType)]
+        rights [runParser (type_ <* eof) 0 "" "(A) => B"] `shouldBe` [SubType [aType] bType]
+        rights [runParser (type_ <* eof) 0 "" "(A, B) => C"] `shouldBe` [SubType [aType, bType] cType]
+        rights [runParser (type_ <* eof) 0 "" "(A, B) => (C) => D"] `shouldBe` [SubType [aType, bType] (SubType [cType] dType)]
 
       it "parses tuple types" $ do
-        rights [runParser (type_ <* eof) 0 "" "()"] `shouldBe` [TupleType typeID []]
-        rights [runParser (type_ <* eof) 0 "" "(A)"] `shouldBe` [TupleType typeID [aType]]
-        rights [runParser (type_ <* eof) 0 "" "(A, B)"] `shouldBe` [TupleType typeID [aType, bType]]
+        rights [runParser (type_ <* eof) 0 "" "()"] `shouldBe` [TupleType []]
+        rights [runParser (type_ <* eof) 0 "" "(A)"] `shouldBe` [TupleType [aType]]
+        rights [runParser (type_ <* eof) 0 "" "(A, B)"] `shouldBe` [TupleType [aType, bType]]
 
     describe "Language.Vitrux.Parse.blockExpr" $ do
       it "parses an empty block" $ do
-        rights [runParser (blockExpr <* eof) 0 "" "{}"] `shouldBe` [BlockExpr exprID []]
-        rights [runParser (blockExpr <* eof) 0 "" "{ }"] `shouldBe` [BlockExpr exprID []]
+        rights [runParser (blockExpr <* eof) 0 "" "{}"] `shouldBe` [BlockExpr []]
+        rights [runParser (blockExpr <* eof) 0 "" "{ }"] `shouldBe` [BlockExpr []]
 
     describe "Language.Vitrux.Parse.aliasDecl" $ do
       it "parses alias decls" $ do
-        rights [runParser (aliasDecl <* eof) 0 "" "alias T = (A, B) => C"] `shouldBe` [AliasDecl declID "T" exampleSubType]
+        rights [runParser (aliasDecl <* eof) 0 "" "alias T = (A, B) => C"] `shouldBe` [AliasDecl "T" exampleSubType]
 
     describe "Language.Vitrux.Parse.structDecl" $ do
       it "parses struct decls" $ do
-        rights [runParser (structDecl <* eof) 0 "" "struct T { }"] `shouldBe` [StructDecl declID "T" []]
-        rights [runParser (structDecl <* eof) 0 "" "struct T { x: A }"] `shouldBe` [StructDecl declID "T" [Field "x" aType]]
-        rights [runParser (structDecl <* eof) 0 "" "struct T { x: A y: B }"] `shouldBe` [StructDecl declID "T" [Field "x" aType, Field "y" bType]]
+        rights [runParser (structDecl <* eof) 0 "" "struct T { }"] `shouldBe` [StructDecl "T" []]
+        rights [runParser (structDecl <* eof) 0 "" "struct T { x: A }"] `shouldBe` [StructDecl "T" [Field "x" aType]]
+        rights [runParser (structDecl <* eof) 0 "" "struct T { x: A y: B }"] `shouldBe` [StructDecl "T" [Field "x" aType, Field "y" bType]]
 
     describe "Language.Vitrux.Parse.structLitExpr" $ do
       it "parses an empty struct literal" $ do
@@ -113,11 +107,11 @@ spec = do
 
     describe "Language.Vitrux.Parse.subDecl" $ do
       it "parses an empty sub declaration" $ do
-        rights [runParser (subDecl <* eof) 0 "" "sub foo(): Void { }"] `shouldBe` [SubDecl declID "foo" [] voidType emptyBlock]
+        rights [runParser (subDecl <* eof) 0 "" "sub foo(): Void { }"] `shouldBe` [SubDecl "foo" [] voidType emptyBlock]
 
       it "parses an sub declaration with a parameter" $ do
-        rights [runParser (subDecl <* eof) 0 "" "sub foo(a: b): (A, B) => C { }"] `shouldBe` [SubDecl declID "foo" [Parameter "a" (makeType "b")] exampleSubType emptyBlock]
+        rights [runParser (subDecl <* eof) 0 "" "sub foo(a: b): (A, B) => C { }"] `shouldBe` [SubDecl "foo" [Parameter "a" (makeType "b")] exampleSubType emptyBlock]
 
     describe "Language.Vitrux.Parse.foreignSubDecl" $ do
       it "parses foreign sub declarations" $ do
-        rights [runParser (foreignSubDecl <* eof) 0 "" "foreign \"./console.js\" sub ecmascript.returnCall info(message: String): ()"] `shouldBe` [ForeignSubDecl declID (ForeignLibrary "./console.js") (CallingConvention (QualifiedName (ModuleName ["ecmascript"]) "returnCall")) "info" [Parameter "message" (NamedType typeID (UnqualifiedName "String"))] (TupleType typeID [])]
+        rights [runParser (foreignSubDecl <* eof) 0 "" "foreign \"./console.js\" sub ecmascript.returnCall info(message: String): ()"] `shouldBe` [ForeignSubDecl (ForeignLibrary "./console.js") (CallingConvention (QualifiedName (ModuleName ["ecmascript"]) "returnCall")) "info" [Parameter "message" (NamedType (UnqualifiedName "String"))] (TupleType [])]

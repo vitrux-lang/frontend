@@ -5,7 +5,6 @@ import Control.Monad (foldM)
 import Text.Parsec (eof, sepBy, sepBy1, try, sepEndBy, many)
 import Language.Vitrux.Lex
 import Language.Vitrux.AST
-import Language.Vitrux.AST.ID (newID, TypeID(..), DeclID(..), ExprID(..))
 
 module_ :: Parser Module
 module_ = Module <$> many decl <* eof
@@ -21,18 +20,17 @@ type_ :: Parser Type
 type_ = namedType <|> try subType <|> tupleType
 
 namedType :: Parser Type
-namedType = NamedType <$> newID <*> name
+namedType = NamedType <$> name
 
 subType :: Parser Type
 subType = do
-    id <- newID
     parameterTypes <- (openingParenthesis *> type_ `sepEndBy` comma <* closingParenthesis)
     fatArrow
     returnType <- type_
-    return $ SubType id parameterTypes returnType
+    return $ SubType parameterTypes returnType
 
 tupleType :: Parser Type
-tupleType = TupleType <$> newID <*> (openingParenthesis *> type_ `sepEndBy` comma <* closingParenthesis)
+tupleType = TupleType <$> (openingParenthesis *> type_ `sepEndBy` comma <* closingParenthesis)
 
 parameter :: Parser Parameter
 parameter = do
@@ -50,8 +48,8 @@ expr = callExpr
 callExpr :: Parser Expr
 callExpr = do
     callee <- primaryExpr
-    argumentLists <- many argumentList
-    foldM (\a b -> (\id -> CallExpr id a b) <$> newID) callee argumentLists
+    argumentList <- argumentList
+    return $ CallExpr callee argumentList
     where
         argumentList :: Parser [Expr]
         argumentList = openingParenthesis *> expr `sepEndBy` comma <* closingParenthesis
@@ -60,13 +58,13 @@ primaryExpr :: Parser Expr
 primaryExpr = nameExpr <|> stringLiteralExpr <|> blockExpr
 
 nameExpr :: Parser Expr
-nameExpr = NameExpr <$> newID <*> name
+nameExpr = NameExpr <$> name
 
 stringLiteralExpr :: Parser Expr
-stringLiteralExpr = StringLiteralExpr <$> newID <*> stringLiteral
+stringLiteralExpr = StringLiteralExpr <$> stringLiteral
 
 blockExpr :: Parser Expr
-blockExpr = BlockExpr <$> newID <*> (openingBrace *> many stmt <* closingBrace)
+blockExpr = BlockExpr <$> (openingBrace *> many stmt <* closingBrace)
 
 structLitExpr :: Parser Expr
 structLitExpr = StructLiteralExpr <$> type_ <*> (openingBrace *> fieldValue `sepBy` comma <* closingBrace)
@@ -82,46 +80,41 @@ decl = aliasDecl <|> importDecl <|> try structDecl <|> subDecl <|> foreignSubDec
 
 aliasDecl :: Parser Decl
 aliasDecl = do
-    id <- newID
     aliasKeyword
     name <- identifier
     equalsSign
     original <- type_
-    return $ AliasDecl id name original
+    return $ AliasDecl name original
 
 importDecl :: Parser Decl
 importDecl = do
-    id <- newID
     moduleName <- ModuleName <$> (importKeyword *> identifier `sepBy1` dot)
-    return $ ImportDecl id moduleName
+    return $ ImportDecl moduleName
 
 structDecl :: Parser Decl
 structDecl = do
-    id <- newID
     structKeyword
     name <- identifier
     openingBrace
     fields <- many field
     closingBrace
-    return $ StructDecl id name fields
+    return $ StructDecl name fields
     where
         field :: Parser Field
         field = Field <$> identifier <*> (colon *> type_)
 
 subDecl :: Parser Decl
 subDecl = do
-    id <- newID
     subKeyword
     name <- identifier
     params <- parameterList
     colon
     retType <- type_
     body <- blockExpr
-    return $ SubDecl id name params retType body
+    return $ SubDecl name params retType body
 
 foreignSubDecl :: Parser Decl
 foreignSubDecl = do
-    id <- newID
     foreignKeyword
     library <- ForeignLibrary <$> stringLiteral
     subKeyword
@@ -130,4 +123,4 @@ foreignSubDecl = do
     params <- parameterList
     colon
     retType <- type_
-    return $ ForeignSubDecl id library cconv name params retType
+    return $ ForeignSubDecl library cconv name params retType

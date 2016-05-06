@@ -1,7 +1,5 @@
 module Language.Vitrux.AST where
 
-import Language.Vitrux.AST.ID (TypeID, DeclID, ExprID)
-
 newtype ModuleName = ModuleName [String]
                      deriving (Eq, Show)
 
@@ -11,9 +9,9 @@ data Name
     deriving (Eq, Show)
 
 data Type
-    = NamedType TypeID Name
-    | SubType TypeID [Type] Type
-    | TupleType TypeID [Type]
+    = NamedType Name
+    | SubType [Type] Type
+    | TupleType [Type]
     deriving (Eq, Show)
 
 type ParameterList = [Parameter]
@@ -35,18 +33,18 @@ newtype CallingConvention = CallingConvention Name
                             deriving (Eq, Show)
 
 data Decl
-    = ImportDecl DeclID ModuleName
-    | SubDecl DeclID String ParameterList Type Expr
-    | ForeignSubDecl DeclID ForeignLibrary CallingConvention String ParameterList Type
-    | AliasDecl DeclID String Type
-    | StructDecl DeclID String [Field]
+    = ImportDecl ModuleName
+    | SubDecl String ParameterList Type Expr
+    | ForeignSubDecl ForeignLibrary CallingConvention String ParameterList Type
+    | AliasDecl String Type
+    | StructDecl String [Field]
     deriving (Eq, Show)
 
 data Expr
-    = BlockExpr ExprID [Stmt]
-    | CallExpr ExprID Expr [Expr]
-    | NameExpr ExprID Name
-    | StringLiteralExpr ExprID String
+    = BlockExpr [Stmt]
+    | CallExpr Expr [Expr]
+    | NameExpr Name
+    | StringLiteralExpr String
     | StructLiteralExpr Type [FieldValue]
     deriving (Eq, Show)
 

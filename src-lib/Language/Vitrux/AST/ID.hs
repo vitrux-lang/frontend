@@ -1,4 +1,4 @@
-module Language.Mill.AST.ID
+module Language.Vitrux.AST.ID
 ( ID
 , TypeID(..)
 , DeclID(..)

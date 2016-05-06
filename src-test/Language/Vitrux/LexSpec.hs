@@ -1,10 +1,10 @@
-module Language.Mill.LexSpec where
+module Language.Vitrux.LexSpec where
 
 import Control.Applicative ((<*))
 import Control.Monad (forM_)
 import Data.Char (toUpper)
 import Data.Either (rights)
-import Language.Mill.Lex
+import Language.Vitrux.Lex
 import Test.Hspec (describe, it, shouldBe, Spec)
 import Text.Parsec (eof, runParser)
 
@@ -17,7 +17,7 @@ spec :: Spec
 spec = do
     let keywords = [("alias", aliasKeyword), ("foreign", foreignKeyword), ("import", importKeyword), ("struct", structKeyword), ("sub", subKeyword)]
 
-    describe "Language.Mill.Lex.identifier" $ do
+    describe "Language.Vitrux.Lex.identifier" $ do
         it "lexes one-character identifiers" $ do
             forM_ ["_", "a", "A"] $ \id -> do
                 rights [runParser (identifier <* eof) 0 "" id] `shouldBe` [id]
@@ -31,7 +31,7 @@ spec = do
                 rights [runParser (identifier <* eof) 0 "" id] `shouldBe` []
 
     forM_ keywords $ \(keyword, keywordParser) -> do
-        describe ("Language.Mill.Lex.keyword" ++ ucFirst keyword) $ do
+        describe ("Language.Vitrux.Lex.keyword" ++ ucFirst keyword) $ do
             it ("lexes '" ++ keyword ++ "'") $ do
                 rights [runParser (keywordParser <* eof) 0 "" keyword] `shouldBe` [()]
 
@@ -41,7 +41,7 @@ spec = do
             it "does not lex something weird" $ do
                 rights [runParser (keywordParser <* eof) 0 "" "bullshit"] `shouldBe` []
 
-    describe "Language.Mill.Lex.stringLiteral" $ do
+    describe "Language.Vitrux.Lex.stringLiteral" $ do
         it "lexes string literals" $ do
             forM_ ["", "a", "A B C"] $ \str -> do
                 rights [runParser (stringLiteral <* eof) 0 "" ("\"" ++ str ++ "\"")] `shouldBe` [str]

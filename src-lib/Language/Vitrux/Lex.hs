@@ -1,4 +1,4 @@
-module Language.Mill.Lex
+module Language.Vitrux.Lex
 ( Parser
 
 , identifier

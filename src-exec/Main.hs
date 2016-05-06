@@ -1,7 +1,7 @@
 module Main where
 
-import Language.Mill.AST ()
-import Language.Mill.Lex ()
+import Language.Vitrux.AST ()
+import Language.Vitrux.Lex ()
 
 main :: IO ()
 main = return ()

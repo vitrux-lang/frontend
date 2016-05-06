@@ -1,6 +1,6 @@
-module Language.Mill.AST where
+module Language.Vitrux.AST where
 
-import Language.Mill.AST.ID (TypeID, DeclID, ExprID)
+import Language.Vitrux.AST.ID (TypeID, DeclID, ExprID)
 
 newtype ModuleName = ModuleName [String]
                      deriving (Eq, Show)

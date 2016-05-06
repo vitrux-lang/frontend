@@ -1,4 +1,4 @@
-name:                   millc
+name:                   vitrux
 version:                0.1.0.0
 build-type:             Simple
 extra-source-files:     README.md
@@ -6,19 +6,19 @@ cabal-version:          >=1.10
 
 library
     hs-source-dirs:     src-lib
-    exposed-modules:    Language.Mill.AST, Language.Mill.AST.ID, Language.Mill.Lex, Language.Mill.Parse
+    exposed-modules:    Language.Vitrux.AST, Language.Vitrux.AST.ID, Language.Vitrux.Lex, Language.Vitrux.Parse
     default-language:   Haskell2010
     build-depends:      base, parsec
 
-executable millc
+executable vitrux
     hs-source-dirs:     src-exec
     main-is:            Main.hs
     default-language:   Haskell2010
-    build-depends:      base, millc
+    build-depends:      base, vitrux
 
-test-suite millc-test
+test-suite vitrux-test
     type:               exitcode-stdio-1.0
     hs-source-dirs:     src-test
     main-is:            Main.hs
     default-language:   Haskell2010
-    build-depends:      base, hspec, millc, parsec
+    build-depends:      base, hspec, vitrux, parsec

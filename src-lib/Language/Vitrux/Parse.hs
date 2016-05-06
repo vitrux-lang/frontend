@@ -1,11 +1,11 @@
-module Language.Mill.Parse where
+module Language.Vitrux.Parse where
 
 import Control.Applicative ((<$>), (<|>), (<*), (<*>), (*>))
 import Control.Monad (foldM)
 import Text.Parsec (eof, sepBy, sepBy1, try, sepEndBy, many)
-import Language.Mill.Lex
-import Language.Mill.AST
-import Language.Mill.AST.ID (newID, TypeID(..), DeclID(..), ExprID(..))
+import Language.Vitrux.Lex
+import Language.Vitrux.AST
+import Language.Vitrux.AST.ID (newID, TypeID(..), DeclID(..), ExprID(..))
 
 module_ :: Parser Module
 module_ = Module <$> many decl <* eof

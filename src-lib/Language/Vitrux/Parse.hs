@@ -3,6 +3,7 @@ module Language.Vitrux.Parse where
 import Control.Applicative ((<$>), (<|>), (<*), (<*>), (*>))
 import Control.Monad (foldM)
 import Text.Parsec (eof, sepBy, sepBy1, try, sepEndBy, many)
+import Text.Parsec.String (Parser)
 import Language.Vitrux.Lex
 import Language.Vitrux.AST
 

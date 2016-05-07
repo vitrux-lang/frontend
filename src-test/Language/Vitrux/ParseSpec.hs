@@ -18,6 +18,7 @@ emptyBlock = BlockExpr []
 makeType name = NamedType (UnqualifiedName name)
 stringFoo = StringLiteralExpr "foo"
 stringBar = StringLiteralExpr "bar"
+aUnqualifiedName = UnqualifiedName "a"
 abcQualifiedName = QualifiedName (ModuleName ["a", "b"]) "c"
 abcType = NamedType abcQualifiedName
 helloWorldSource = "import mill.log\n" ++

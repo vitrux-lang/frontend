@@ -49,8 +49,8 @@ expr = callExpr
 callExpr :: Parser Expr
 callExpr = do
     callee <- primaryExpr
-    argumentList <- argumentList
-    return $ CallExpr callee argumentList
+    argumentLists <- many argumentList
+    return $ foldl CallExpr callee argumentLists
     where
         argumentList :: Parser [Expr]
         argumentList = openingParenthesis *> expr `sepEndBy` comma <* closingParenthesis
